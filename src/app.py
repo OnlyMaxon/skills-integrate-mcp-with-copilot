@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
 from pathlib import Path
+import json
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
@@ -76,6 +77,21 @@ activities = {
         "participants": ["charlotte@mergington.edu", "henry@mergington.edu"]
     }
 }
+
+# Prefer loading activities from a JSON file (easier to edit without touching code).
+# If `src/activities.json` exists it will replace the in-code `activities` dict.
+activities_file = current_dir / "activities.json"
+if activities_file.exists():
+    try:
+        with activities_file.open(encoding="utf-8") as f:
+            loaded = json.load(f)
+            # Basic validation: expect a dict mapping names -> dict
+            if isinstance(loaded, dict):
+                activities = loaded
+    except Exception:
+        # If loading fails, keep the in-code activities as a safe fallback.
+        pass
+
 
 
 @app.get("/")
